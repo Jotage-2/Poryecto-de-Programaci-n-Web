@@ -1,0 +1,34 @@
+# Dependencias
+node_modules/
+*/node_modules/
+
+# Variables de entorno (¡NUNCA subir al repositorio!)
+.env
+server/.env
+
+# Archivos de build
+dist/
+build/
+*/dist/
+*/build/
+
+# Caché y archivos temporales
+.cache/
+.vite/
+*.local
+
+# Sistemas operativos
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

@@ -1,0 +1,17 @@
+[
+  {
+    "id": "demo-user-001",
+    "name": "Demo",
+    "lastName": "Usuario",
+    "studentCode": "20240001",
+    "entryYear": "2024",
+    "email": "demo@aloe.ulima.edu.pe",
+    "password": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+    "career": "Ingeniería de Sistemas",
+    "cycle": "3",
+    "profilePicture": "",
+    "verificationCode": "",
+    "verified": true,
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+]

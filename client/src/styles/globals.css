@@ -1,0 +1,138 @@
+/* styles/globals.css - Estilos globales de ULimaSocial */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   VARIABLES CSS PERSONALIZADAS
+   ============================================================ */
+:root {
+  --color-primary: #e85d04;
+  --color-primary-light: #f97316;
+  --color-primary-dark: #c2410c;
+  --color-bg: #f3f4f6;
+  --color-bg-card: #ffffff;
+  --color-text: #1a1a1a;
+  --color-text-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Modo oscuro */
+.dark {
+  --color-bg: #111827;
+  --color-bg-card: #1f2937;
+  --color-text: #f9fafb;
+  --color-text-muted: #9ca3af;
+  --color-border: #374151;
+}
+
+/* ============================================================
+   ESTILOS BASE
+   ============================================================ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Poppins', system-ui, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================
+   COMPONENTES REUTILIZABLES
+   ============================================================ */
+
+/* Input base */
+.input-base {
+  @apply w-full px-4 py-3 rounded-xl border bg-white dark:bg-dark-200 
+         text-gray-900 dark:text-gray-100 border-gray-200 dark:border-dark-400
+         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+         placeholder-gray-400 dark:placeholder-gray-500
+         transition-all duration-200;
+}
+
+/* Botón primario */
+.btn-primary {
+  @apply w-full py-3 px-6 bg-primary-600 hover:bg-primary-700 
+         text-white font-semibold rounded-xl
+         transition-all duration-200 transform hover:scale-[1.02]
+         active:scale-[0.98] shadow-md hover:shadow-lg
+         disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none;
+}
+
+/* Botón secundario */
+.btn-secondary {
+  @apply w-full py-3 px-6 bg-transparent border-2 border-primary-600 
+         text-primary-600 dark:text-primary-400 font-semibold rounded-xl
+         transition-all duration-200 hover:bg-primary-50 dark:hover:bg-primary-900/20
+         disabled:opacity-60 disabled:cursor-not-allowed;
+}
+
+/* Card base */
+.card {
+  @apply bg-white dark:bg-dark-200 rounded-2xl shadow-sm border 
+         border-gray-100 dark:border-dark-400;
+}
+
+/* Animación de entrada para páginas */
+.page-enter {
+  animation: pageEnter 0.4s ease-out;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Spinner de carga */
+.spinner {
+  @apply inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+/* Gradiente del logo */
+.logo-gradient {
+  background: linear-gradient(135deg, #e85d04, #f97316);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
