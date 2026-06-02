@@ -13,5 +13,20 @@
     "verificationCode": "",
     "verified": true,
     "createdAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "5ce645fb-21ef-466f-9e44-5cd8ff63640a",
+    "name": "Stefano",
+    "lastName": "Terror de Marketing",
+    "studentCode": "20222331",
+    "entryYear": "2022",
+    "email": "20222331@aloe.ulima.edu.pe",
+    "password": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+    "career": "Ingeniería de Sistemas",
+    "cycle": "8",
+    "profilePicture": "",
+    "verificationCode": "946618",
+    "verified": true,
+    "createdAt": "2026-06-02T23:09:16.164Z"
   }
 ]
