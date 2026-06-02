@@ -7,10 +7,6 @@ import { getInitials } from '../utils/validators';
 import Navbar from '../components/common/Navbar';
 
 // ============================================================
-// NAVBAR COMPONENT
-// ============================================================
-
-// ============================================================
 // SIDEBAR IZQUIERDO
 // ============================================================
 const LeftSidebar = ({ user, navigate }) => (
