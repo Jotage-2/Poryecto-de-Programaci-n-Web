@@ -10,6 +10,7 @@ import RegisterPage from './pages/RegisterPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import HomePage from './pages/HomePage';
+import GruposPage from './pages/GruposPage';
 
 /**
  * Componente raíz de la aplicación
@@ -45,7 +46,14 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
-
+            <Route
+              path="/grupos"
+              element={
+                <ProtectedRoute>
+                  <GruposPage />
+                </ProtectedRoute>
+              }
+            />
             {/* Ruta 404: redirigir al login */}
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
