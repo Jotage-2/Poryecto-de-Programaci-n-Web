@@ -21,6 +21,9 @@ const GruposPage = () => {
       <main className="max-w-5xl mx-auto px-4 pt-20 pb-8">
         {/* Aquí va el contenido de Grupos */}
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Grupos</h1>
+        <div className='font-bold'>
+          GRUPO 1 DE INGENIREIA 
+        </div>
       </main>
     </div>
   );
