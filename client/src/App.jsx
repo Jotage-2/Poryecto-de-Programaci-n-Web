@@ -2,11 +2,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { FriendsProvider } from './context/FriendsContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import ProfilePage from './pages/ProfilePage';
+import FriendsPage from './pages/FriendsPage';
 
-// Dentro de <Routes>:
-<Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
 
 // Páginas
 import LoginPage from './pages/LoginPage';
@@ -15,55 +14,35 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import HomePage from './pages/HomePage';
 import GruposPage from './pages/GruposPage';
+import ProfilePage from './pages/ProfilePage';
 
-/**
- * Componente raíz de la aplicación
- * Configura proveedores de contexto y sistema de rutas
- */
 const App = () => {
   return (
-    // ThemeProvider: maneja modo claro/oscuro globalmente
     <ThemeProvider>
-      {/* AuthProvider: maneja la sesión del usuario globalmente */}
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Ruta raíz: redirigir al login */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* FriendsProvider va DENTRO de AuthProvider porque necesita al usuario */}
+        <FriendsProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Navigate to="/login" replace />} />
 
-            {/* ============================================================
-                RUTAS PÚBLICAS (sin autenticación)
-                ============================================================ */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/verify-email" element={<VerifyEmailPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            
+              {/* Rutas públicas */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/verify-email" element={<VerifyEmailPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-            {/* ============================================================
-                RUTAS PROTEGIDAS (requieren autenticación)
-                ============================================================ */}
-            <Route
-              path="/home"
-              element={
-                <ProtectedRoute>
-                  <HomePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-            <Route
-              path="/grupos"
-              element={
-                <ProtectedRoute>
-                  <GruposPage />
-                </ProtectedRoute>
-              }
-            />
-            {/* Ruta 404: redirigir al login */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
-        </BrowserRouter>
+              {/* Rutas protegidas */}
+              <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="/grupos" element={<ProtectedRoute><GruposPage /></ProtectedRoute>} />
+              <Route path="/amigos" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
+
+
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </FriendsProvider>
       </AuthProvider>
     </ThemeProvider>
   );

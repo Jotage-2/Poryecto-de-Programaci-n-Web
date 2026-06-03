@@ -136,7 +136,35 @@ export const login = async (req, res) => {
     res.status(401).json({ message: error.message });
   }
 };
+/**
+ * GET /api/auth/search?q=texto
+ * Busca usuarios por nombre, apellido o código universitario
+ */
+export const search = (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 2) {
+      return res.json({ users: [] });
+    }
 
+    const query = q.toLowerCase().trim();
+    const users = getAllUsers();
+
+    const results = users
+      .filter((u) => u.verified) // Solo cuentas verificadas
+      .filter((u) =>
+        u.name.toLowerCase().includes(query) ||
+        u.lastName.toLowerCase().includes(query) ||
+        u.studentCode.includes(query) ||
+        u.career.toLowerCase().includes(query)
+      )
+      .map(({ password, verificationCode, ...safe }) => safe); // Sin datos sensibles
+
+    res.json({ users: results });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 // ============================================================
 // RECUPERAR CONTRASEÑA
 // ============================================================

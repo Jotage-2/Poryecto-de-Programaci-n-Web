@@ -7,6 +7,7 @@ import {
   login,
   forgotPassword,
   resetPasswordHandler,
+  search,
 } from '../controllers/authController.js';
 
 const router = Router();
@@ -32,5 +33,7 @@ router.post('/forgot-password', forgotPassword);
 
 // Restablecer contraseña con código
 router.post('/reset-password', resetPasswordHandler);
+
+router.get('/search', search);
 
 export default router;
