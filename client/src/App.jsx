@@ -15,6 +15,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import HomePage from './pages/HomePage';
 import GruposPage from './pages/GruposPage';
 import ProfilePage from './pages/ProfilePage';
+import MensajesPage from './pages/MensajesPage';
 
 const App = () => {
   return (
@@ -37,6 +38,7 @@ const App = () => {
               <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
               <Route path="/grupos" element={<ProtectedRoute><GruposPage /></ProtectedRoute>} />
               <Route path="/amigos" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
+              <Route path="/mensajes" element={<ProtectedRoute><MensajesPage /></ProtectedRoute>} />
 
 
               <Route path="*" element={<Navigate to="/login" replace />} />

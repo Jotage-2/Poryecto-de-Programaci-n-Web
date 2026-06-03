@@ -65,7 +65,7 @@ const LeftSidebar = ({ user, navigate, totalPosts }) => {
             { icon: '🏠', label: 'Inicio', path: '/home' },
             { icon: '👤', label: 'Mi perfil', path: '/profile' },
             { icon: '👥', label: 'Amigos', path: '/amigos', badge: pendingCount > 0 ? pendingCount : null },
-            { icon: '💬', label: 'Mensajes', path: null, badge: 'Próximo' },
+            { icon: '💬', label: 'Mensajes', path: '/mensajes' },
             { icon: '🏫', label: 'Grupos', path: '/grupos' },
           ].map(({ icon, label, path, badge }) => {
             const isActive = window.location.pathname === path;
