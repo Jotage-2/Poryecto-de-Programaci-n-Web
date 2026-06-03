@@ -52,7 +52,7 @@ const LeftSidebar = ({ user, navigate }) => (
         {[
           { icon: '🏠', label: 'Inicio', active: true },
           { icon: '👤', label: 'Mi perfil', active: false, path: '/profile' },
-          { icon: '👥', label: 'Amigos', active: false, badge: 'Próximamente' },
+          { icon: '👥', label: 'Amigos', active: false, path: '/amigos' },
           { icon: '💬', label: 'Mensajes', active: false, badge: 'Próximamente' },
           { icon: '🏫', label: 'Grupos', active: false, path:'/grupos' },
         ].map(({ icon, label, active, badge, path }) => (
