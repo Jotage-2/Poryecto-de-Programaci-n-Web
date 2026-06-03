@@ -3,6 +3,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import ProfilePage from './pages/ProfilePage';
+
+// Dentro de <Routes>:
+<Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
 
 // Páginas
 import LoginPage from './pages/LoginPage';
@@ -34,6 +38,7 @@ const App = () => {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            
 
             {/* ============================================================
                 RUTAS PROTEGIDAS (requieren autenticación)
@@ -46,6 +51,7 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route
               path="/grupos"
               element={

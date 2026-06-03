@@ -89,7 +89,7 @@ const Navbar = () => {
                 </button>
                 <button
                   className="w-full text-left px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-300 transition-colors"
-                  onClick={() => { setMenuOpen(false); }}
+                  onClick={() => { setMenuOpen(false); navitage('/profile'); }}
                 >
                   ⚙️ Configuración
                 </button>

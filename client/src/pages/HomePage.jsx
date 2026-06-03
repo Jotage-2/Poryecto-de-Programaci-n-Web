@@ -51,7 +51,7 @@ const LeftSidebar = ({ user, navigate }) => (
       <div className="card p-3">
         {[
           { icon: '🏠', label: 'Inicio', active: true },
-          { icon: '👤', label: 'Mi perfil', active: false },
+          { icon: '👤', label: 'Mi perfil', active: false, path: '/profile' },
           { icon: '👥', label: 'Amigos', active: false, badge: 'Próximamente' },
           { icon: '💬', label: 'Mensajes', active: false, badge: 'Próximamente' },
           { icon: '🏫', label: 'Grupos', active: false, path:'/grupos' },
@@ -86,34 +86,6 @@ const LeftSidebar = ({ user, navigate }) => (
 // ============================================================
 const EmptyFeed = ({ user }) => (
   <div className="flex-1 min-w-0 space-y-4">
-    {/* Caja de crear publicación (deshabilitada) */}
-    <div className="card p-4">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden">
-          {user?.profilePicture ? (
-            <img src={user.profilePicture} alt="Perfil" className="w-full h-full object-cover" />
-          ) : (
-            getInitials(user?.name, user?.lastName)
-          )}
-        </div>
-        <div className="flex-1 bg-gray-100 dark:bg-dark-300 rounded-xl px-4 py-3 text-sm text-gray-400 dark:text-gray-500 cursor-not-allowed">
-          ¿Qué estás pensando, {user?.name}?
-        </div>
-      </div>
-      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-dark-400 flex gap-3">
-        {[['📷', 'Foto/Video'], ['🎥', 'En vivo'], ['😊', 'Estado']].map(([icon, label]) => (
-          <button
-            key={label}
-            disabled
-            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm text-gray-400 dark:text-gray-500 opacity-50 cursor-not-allowed"
-          >
-            <span>{icon}</span>
-            <span className="hidden sm:block">{label}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-
     {/* Estado vacío */}
     <div className="card p-12 text-center animate-fade-in">
       <div className="text-6xl mb-4 animate-bounce-soft">🎓</div>
