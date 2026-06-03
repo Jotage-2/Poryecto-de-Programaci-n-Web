@@ -15,6 +15,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import HomePage from './pages/HomePage';
 import GruposPage from './pages/GruposPage';
+import AmigosPage from './pages/AmigosPage';
 
 /**
  * Componente raíz de la aplicación
@@ -57,6 +58,14 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <GruposPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/amigos"
+              element={
+                <ProtectedRoute>
+                  <AmigosPage />
                 </ProtectedRoute>
               }
             />
