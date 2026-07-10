@@ -2,10 +2,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { getInitials } from '../utils/validators';
 import Navbar from '../components/common/Navbar';
 import { useFriends } from '../context/FriendsContext';
+import { usePosts } from '../hooks/usePosts';
 import { ListaPublicaciones, ModalPublicacion } from '../components/common/Publicaciones';
 
 // ============================================================
@@ -169,52 +169,22 @@ const HomePage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { friends } = useFriends();
+  const { posts: publicaciones, loading, addPost, handleToggleLike, deletePost } = usePosts();
 
-  // Estado de publicaciones guardado en localStorage
-  const POSTS_KEY = `ulimasocial_posts_${user?.id}`;
-  const [publicaciones, setPublicaciones] = useState(() => {
-    try {
-      const raw = localStorage.getItem(POSTS_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
   const [modalAbierto, setModalAbierto] = useState(false);
 
-  const guardarPosts = (posts) => {
-    localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
-    setPublicaciones(posts);
+  const handlePublicar = async (texto) => {
+    if (await addPost(texto, user?.id)) {
+      setModalAbierto(false);
+    }
   };
 
-  const handlePublicar = (texto) => {
-    const nuevo = {
-      id: Date.now().toString(),
-      contenido: texto,
-      fecha: new Date().toLocaleString('es-PE', {
-        day: 'numeric', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit',
-      }),
-      likes: 0,
-      likedByMe: false,
-      comentarios: 0,
-    };
-    guardarPosts([nuevo, ...publicaciones]);
-    setModalAbierto(false);
+  const handleEliminar = async (id) => {
+    await deletePost(id);
   };
 
-  const handleEliminar = (id) => {
-    guardarPosts(publicaciones.filter((p) => p.id !== id));
-  };
-
-  const handleLike = (id) => {
-    guardarPosts(
-      publicaciones.map((p) =>
-        p.id === id
-          ? { ...p, likes: p.likedByMe ? p.likes - 1 : p.likes + 1, likedByMe: !p.likedByMe }
-          : p
-      )
-    );
+  const handleLike = async (id) => {
+    await handleToggleLike(id, user?.id);
   };
 
   return (

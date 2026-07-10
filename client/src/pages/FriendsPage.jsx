@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
+import { useAuth } from '../context/AuthContext';
 import { useFriends } from '../context/FriendsContext';
 import { getInitials } from '../utils/validators';
 
@@ -53,16 +54,32 @@ const FriendsPage = () => {
   // Tab activo: 'friends' | 'received' | 'sent'
   const [activeTab, setActiveTab] = useState('friends');
 
+  const { user } = useAuth();
   const {
     friends,
-    receivedRequests,
-    sentRequests,
-    pendingCount,
+    pendingRequests: receivedRequests,
+    loading,
+    error,
     acceptRequest,
     rejectRequest,
-    cancelRequest,
-    removeFriend,
+    removeFriend
   } = useFriends();
+
+  // Mocks para solicitudes enviadas (opcional si la API no las retorna separadas aún)
+  const sentRequests = [];
+  const pendingCount = receivedRequests.length;
+
+  const handleAcceptRequest = async (person) => {
+    await acceptRequest(person.friendshipId);
+  };
+
+  const handleRejectRequest = async (person) => {
+    await rejectRequest(person.friendshipId);
+  };
+
+  const cancelRequest = (id) => {
+    // Opcional: implementación para cancelar enviadas
+  };
 
   const tabs = [
     { id: 'friends',  label: 'Mis amigos',  count: friends.length },
@@ -160,13 +177,13 @@ const FriendsPage = () => {
                     actions={
                       <>
                         <button
-                          onClick={() => acceptRequest(person)}
+                          onClick={() => handleAcceptRequest(person)}
                           className="text-xs bg-primary-600 hover:bg-primary-700 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors"
                         >
                           Aceptar
                         </button>
                         <button
-                          onClick={() => rejectRequest(person.id)}
+                          onClick={() => handleRejectRequest(person)}
                           className="text-xs bg-gray-100 dark:bg-dark-400 hover:bg-gray-200 dark:hover:bg-dark-300 text-gray-600 dark:text-gray-300 font-medium px-3 py-1.5 rounded-lg transition-colors"
                         >
                           Rechazar

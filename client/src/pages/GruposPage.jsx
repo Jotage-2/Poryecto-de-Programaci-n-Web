@@ -1,17 +1,8 @@
 import { useState } from 'react';
 import Navbar from '../components/common/Navbar';
-
-// ============================================================
-// Son datos de ejemplo, proximamente en el servidor
-// ============================================================
-const gruposEjemplo = [
-  { id: 1, nombre: 'Programación Web', carrera: 'Ingeniería de Sistemas', miembros: 24, unido: false, emoji: '💻' },
-  { id: 2, nombre: 'Cálculo II', carrera: 'Ingeniería Industrial', miembros: 18, unido: false, emoji: '📐' },
-  { id: 3, nombre: 'Diseño UX/UI', carrera: 'Comunicaciones', miembros: 12, unido: false, emoji: '🎨' },
-  { id: 4, nombre: 'Base de Datos', carrera: 'Ingeniería de Sistemas', miembros: 30, unido: false, emoji: '🗄️' },
-  { id: 5, nombre: 'Marketing Digital', carrera: 'Administración', miembros: 20, unido: false, emoji: '📱' },
-  { id: 6, nombre: 'Física III', carrera: 'Ingeniería Civil', miembros: 15, unido: false, emoji: '⚡' },
-];
+import { useAuth } from '../context/AuthContext';
+import { useGroups } from '../hooks/useGroups';
+import { Modal } from '../components/common/UIComponents';
 
 // ============================================================
 // MODAL PARA CREAR GRUPO
@@ -29,13 +20,8 @@ const CrearGrupoModal = ({ onClose, onCreate }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-dark-200 rounded-2xl p-6 w-full max-w-md shadow-xl">
-        <h2 className="text-lg font-bold text-orange-500 mb-4">
-          Crear nuevo grupo
-        </h2>
-
-        <div className="space-y-4">
+    <Modal isOpen={true} onClose={onClose} title="Crear nuevo grupo">
+      <div className="space-y-4">
           {/* Emoji */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -103,8 +89,7 @@ const CrearGrupoModal = ({ onClose, onCreate }) => {
             Crear grupo
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 };
 
@@ -133,12 +118,12 @@ const GrupoCard = ({ grupo, onToggle }) => (
       <button
         onClick={() => onToggle(grupo.id)}
         className={`w-full mt-3 py-2 rounded-xl text-sm font-semibold transition-colors ${
-          grupo.unido
+          grupo.isMember
             ? 'bg-gray-100 dark:bg-dark-300 text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-500'
             : 'bg-primary-500 hover:bg-primary-600 text-white'
         }`}
       >
-        {grupo.unido ? 'Salir' : 'Unirse'}
+        {grupo.isMember ? 'Salir' : 'Unirse'}
       </button>
     </div>
   </div>
@@ -148,33 +133,23 @@ const GrupoCard = ({ grupo, onToggle }) => (
 // PÁGINA PRINCIPAL
 // ============================================================
 const GruposPage = () => {
-  const [grupos, setGrupos] = useState(gruposEjemplo);//almacenar la lista de grupos
-  const [busqueda, setBusqueda] = useState('');//guardar el texto del usuario 
+  const { user } = useAuth();
+  const { groups: grupos, loading, addGroup, toggleMembership } = useGroups();
+  const [busqueda, setBusqueda] = useState('');
   const [mostrarModal, setMostrarModal] = useState(false);
   const [filtro, setFiltro] = useState('todos'); // 'todos' | 'misGrupos'
 
-  const toggleUnirse = (id) => { 
-    //IA ayuda, Unirse o salir del grupo
-    setGrupos(grupos.map(g =>
-      g.id === id ? { ...g, unido: !g.unido, miembros: g.unido ? g.miembros - 1 : g.miembros + 1 } : g
-    ));
+  const toggleUnirse = async (id) => { 
+    await toggleMembership(id, user?.id);
   };
 
-  const crearGrupo = ({ nombre, carrera, emoji }) => {
-    const nuevo = {
-      id: grupos.length + 1,
-      nombre,
-      carrera,
-      emoji,
-      miembros: 1,//por defecto ponemos que cada grupo que se cree tenga un grupo(el que lo creo)
-      unido: true,
-    };
-    setGrupos([nuevo, ...grupos]);
+  const crearGrupo = async ({ nombre, carrera, emoji }) => {
+    await addGroup({ name: nombre, career: carrera, emoji, creatorId: user?.id });
   };
 
   const gruposFiltrados = grupos
-    .filter(g => filtro === 'misGrupos' ? g.unido : true)
-    .filter(g => g.nombre.toLowerCase().includes(busqueda.toLowerCase()));
+    .filter(g => filtro === 'misGrupos' ? g.isMember : true)
+    .filter(g => g.name.toLowerCase().includes(busqueda.toLowerCase()));
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-dark-100">
@@ -239,9 +214,12 @@ const GruposPage = () => {
         {/* Grid de tarjetas */}
         {gruposFiltrados.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" >
-            {gruposFiltrados.map(grupo => (
-              <GrupoCard key={grupo.id} grupo={grupo} onToggle={toggleUnirse} />
-            ))}
+            {gruposFiltrados.map(grupo => {
+              const isMember = grupo.members && Array.isArray(grupo.members) ? grupo.members.some(m => m.id === user?.id) : grupo.isMember;
+              return (
+                <GrupoCard key={grupo.id} grupo={{...grupo, nombre: grupo.name, carrera: grupo.career, miembros: grupo.membersCount, emoji: grupo.emoji || '📚', isMember}} onToggle={toggleUnirse} />
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-20 text-gray-400">

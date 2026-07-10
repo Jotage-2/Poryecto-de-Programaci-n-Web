@@ -6,7 +6,7 @@ import {
   authenticateUser,
   setPasswordResetCode,
   resetPassword,
-  findUserByEmail,
+  getAllUsers,
 } from '../services/userService.js';
 import {
   sendVerificationEmail,
@@ -17,10 +17,6 @@ import {
 // REGISTRO
 // ============================================================
 
-/**
- * POST /api/auth/register
- * Registra un nuevo usuario y envía correo de verificación
- */
 export const register = async (req, res) => {
   try {
     const { name, lastName, studentCode, email, password, career, cycle, profilePicture } = req.body;
@@ -30,23 +26,20 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'Todos los campos son obligatorios' });
     }
 
-    // Validar dominio del correo institucional
     if (!email.endsWith('@aloe.ulima.edu.pe')) {
       return res.status(400).json({ message: 'El correo debe ser institucional (@aloe.ulima.edu.pe)' });
     }
 
-    // Validar formato del código universitario (8 dígitos numéricos)
     if (!/^\d{8}$/.test(studentCode)) {
       return res.status(400).json({ message: 'El código universitario debe tener 8 dígitos numéricos' });
     }
 
-    // Validar contraseña mínima
     if (password.length < 6) {
       return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' });
     }
 
-    // Crear usuario y obtener código
-    const { user, verificationCode } = createUser({
+    // Crear usuario y obtener código (Ahora es async)
+    const { user, verificationCode } = await createUser({
       name, lastName, studentCode, email, password, career, cycle, profilePicture
     });
 
@@ -66,10 +59,6 @@ export const register = async (req, res) => {
 // VERIFICACIÓN DE CORREO
 // ============================================================
 
-/**
- * POST /api/auth/verify
- * Verifica la cuenta con el código enviado al correo
- */
 export const verifyEmail = async (req, res) => {
   try {
     const { email, code } = req.body;
@@ -78,7 +67,7 @@ export const verifyEmail = async (req, res) => {
       return res.status(400).json({ message: 'Correo y código son requeridos' });
     }
 
-    const user = verifyUserAccount(email, code);
+    const user = await verifyUserAccount(email, code);
 
     res.json({
       message: '¡Cuenta verificada exitosamente! Ya puedes iniciar sesión.',
@@ -89,10 +78,6 @@ export const verifyEmail = async (req, res) => {
   }
 };
 
-/**
- * POST /api/auth/resend-code
- * Reenvía el código de verificación
- */
 export const resendCode = async (req, res) => {
   try {
     const { email } = req.body;
@@ -101,7 +86,7 @@ export const resendCode = async (req, res) => {
       return res.status(400).json({ message: 'El correo es requerido' });
     }
 
-    const { code, user } = regenerateVerificationCode(email);
+    const { code, user } = await regenerateVerificationCode(email);
     await sendVerificationEmail(email, user.name, code);
 
     res.json({ message: 'Código reenviado exitosamente. Revisa tu correo.' });
@@ -114,10 +99,6 @@ export const resendCode = async (req, res) => {
 // LOGIN
 // ============================================================
 
-/**
- * POST /api/auth/login
- * Inicia sesión con correo institucional o código universitario
- */
 export const login = async (req, res) => {
   try {
     const { identifier, password } = req.body;
@@ -126,7 +107,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Credenciales incompletas' });
     }
 
-    const user = authenticateUser(identifier, password);
+    const user = await authenticateUser(identifier, password);
 
     res.json({
       message: 'Inicio de sesión exitoso',
@@ -136,11 +117,8 @@ export const login = async (req, res) => {
     res.status(401).json({ message: error.message });
   }
 };
-/**
- * GET /api/auth/search?q=texto
- * Busca usuarios por nombre, apellido o código universitario
- */
-export const search = (req, res) => {
+
+export const search = async (req, res) => {
   try {
     const { q } = req.query;
     if (!q || q.trim().length < 2) {
@@ -148,31 +126,28 @@ export const search = (req, res) => {
     }
 
     const query = q.toLowerCase().trim();
-    const users = getAllUsers();
+    const users = await getAllUsers();
 
     const results = users
-      .filter((u) => u.verified) // Solo cuentas verificadas
+      .filter((u) => u.verified) 
       .filter((u) =>
         u.name.toLowerCase().includes(query) ||
         u.lastName.toLowerCase().includes(query) ||
         u.studentCode.includes(query) ||
         u.career.toLowerCase().includes(query)
       )
-      .map(({ password, verificationCode, ...safe }) => safe); // Sin datos sensibles
+      .map(({ password, verificationCode, ...safe }) => safe);
 
     res.json({ users: results });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 // ============================================================
 // RECUPERAR CONTRASEÑA
 // ============================================================
 
-/**
- * POST /api/auth/forgot-password
- * Solicita recuperación de contraseña
- */
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -185,7 +160,7 @@ export const forgotPassword = async (req, res) => {
       return res.status(400).json({ message: 'El correo debe ser institucional (@aloe.ulima.edu.pe)' });
     }
 
-    const { code, user } = setPasswordResetCode(email);
+    const { code, user } = await setPasswordResetCode(email);
     await sendPasswordResetEmail(email, user.name, code);
 
     res.json({ message: 'Se envió un código de recuperación a tu correo institucional.' });
@@ -194,10 +169,6 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-/**
- * POST /api/auth/reset-password
- * Restablece la contraseña con el código de verificación
- */
 export const resetPasswordHandler = async (req, res) => {
   try {
     const { email, code, newPassword } = req.body;
@@ -210,7 +181,7 @@ export const resetPasswordHandler = async (req, res) => {
       return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' });
     }
 
-    resetPassword(email, code, newPassword);
+    await resetPassword(email, code, newPassword);
 
     res.json({ message: '¡Contraseña actualizada exitosamente! Ya puedes iniciar sesión.' });
   } catch (error) {

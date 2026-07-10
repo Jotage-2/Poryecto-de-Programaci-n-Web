@@ -1,40 +1,18 @@
-// services/userService.js - Lógica de negocio para usuarios
-import { readFileSync, writeFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+// services/userService.js - Lógica de negocio para usuarios con Prisma
+import { PrismaClient } from '@prisma/client';
 import { createHash } from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const USERS_FILE = join(__dirname, '../data/users.json');
+import dotenv from 'dotenv';
+dotenv.config();
+
+const prisma = new PrismaClient();
 
 // ============================================================
-// FUNCIONES DE ACCESO A DATOS
+// FUNCIONES AUXILIARES
 // ============================================================
-
-/**
- * Lee todos los usuarios del JSON
- */
-export const getAllUsers = () => {
-  try {
-    const data = readFileSync(USERS_FILE, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
-};
-
-/**
- * Guarda la lista de usuarios
- */
-export const saveUsers = (users) => {
-  writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
-};
 
 /**
  * Hash SHA-256 sin salt (solo para proyecto universitario)
- * En producción: usar bcrypt con salt rounds
  */
 export const hashPassword = (password) => {
   return createHash('sha256').update(password).digest('hex');
@@ -48,145 +26,122 @@ export const generateCode = () => {
 };
 
 // ============================================================
-// OPERACIONES DE USUARIO
+// OPERACIONES DE USUARIO (PRISMA)
 // ============================================================
 
-/**
- * Busca usuario por email o código universitario
- */
-export const findUser = (identifier) => {
-  const users = getAllUsers();
-  return users.find(
-    (u) => u.email === identifier || u.studentCode === identifier
-  );
+export const getAllUsers = async () => {
+  return await prisma.user.findMany();
 };
 
-/**
- * Busca usuario por email
- */
-export const findUserByEmail = (email) => {
-  const users = getAllUsers();
-  return users.find((u) => u.email === email);
+export const findUser = async (identifier) => {
+  return await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: identifier },
+        { studentCode: identifier }
+      ]
+    }
+  });
 };
 
-/**
- * Crea un nuevo usuario
- */
-export const createUser = (userData) => {
-  const users = getAllUsers();
+export const findUserByEmail = async (email) => {
+  return await prisma.user.findUnique({ where: { email } });
+};
 
-  // Verificar duplicados
-  const existingEmail = users.find((u) => u.email === userData.email);
+export const createUser = async (userData) => {
+  const existingEmail = await prisma.user.findUnique({ where: { email: userData.email } });
   if (existingEmail) throw new Error('Ya existe una cuenta con ese correo institucional');
 
-  const existingCode = users.find((u) => u.studentCode === userData.studentCode);
+  const existingCode = await prisma.user.findUnique({ where: { studentCode: userData.studentCode } });
   if (existingCode) throw new Error('Ya existe una cuenta con ese código universitario');
 
   const verificationCode = generateCode();
-  const newUser = {
-    id: uuidv4(),
-    name: userData.name,
-    lastName: userData.lastName,
-    studentCode: userData.studentCode,
-    entryYear: userData.studentCode.substring(0, 4),
-    email: userData.email,
-    password: hashPassword(userData.password),
-    career: userData.career,
-    cycle: userData.cycle,
-    profilePicture: userData.profilePicture || '',
-    verificationCode,
-    verified: false,
-    createdAt: new Date().toISOString(),
-  };
-
-  users.push(newUser);
-  saveUsers(users);
+  
+  const newUser = await prisma.user.create({
+    data: {
+      name: userData.name,
+      lastName: userData.lastName,
+      studentCode: userData.studentCode,
+      email: userData.email,
+      password: hashPassword(userData.password),
+      career: userData.career,
+      cycle: userData.cycle,
+      profilePicture: userData.profilePicture || '',
+      verificationCode,
+      verified: false
+    }
+  });
 
   return { user: newUser, verificationCode };
 };
 
-/**
- * Verifica la cuenta de un usuario con su código
- */
-export const verifyUserAccount = (email, code) => {
-  const users = getAllUsers();
-  const index = users.findIndex((u) => u.email === email);
-
-  if (index === -1) throw new Error('Usuario no encontrado');
-
-  const user = users[index];
+export const verifyUserAccount = async (email, code) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new Error('Usuario no encontrado');
   if (user.verified) throw new Error('La cuenta ya está verificada');
   if (user.verificationCode !== code) throw new Error('Código de verificación incorrecto');
 
-  // Marcar como verificado y limpiar el código
-  users[index].verified = true;
-  users[index].verificationCode = '';
-  saveUsers(users);
+  const updatedUser = await prisma.user.update({
+    where: { email },
+    data: { verified: true, verificationCode: null }
+  });
 
-  return users[index];
+  return updatedUser;
 };
 
-/**
- * Genera y guarda un nuevo código de verificación
- */
-export const regenerateVerificationCode = (email) => {
-  const users = getAllUsers();
-  const index = users.findIndex((u) => u.email === email);
-
-  if (index === -1) throw new Error('Usuario no encontrado');
-  if (users[index].verified) throw new Error('La cuenta ya está verificada');
+export const regenerateVerificationCode = async (email) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new Error('Usuario no encontrado');
+  if (user.verified) throw new Error('La cuenta ya está verificada');
 
   const newCode = generateCode();
-  users[index].verificationCode = newCode;
-  saveUsers(users);
+  const updatedUser = await prisma.user.update({
+    where: { email },
+    data: { verificationCode: newCode }
+  });
 
-  return { code: newCode, user: users[index] };
+  return { code: newCode, user: updatedUser };
 };
 
-/**
- * Genera código de recuperación de contraseña
- */
-export const setPasswordResetCode = (email) => {
-  const users = getAllUsers();
-  const index = users.findIndex((u) => u.email === email);
-
-  if (index === -1) throw new Error('No existe una cuenta con ese correo');
+export const setPasswordResetCode = async (email) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new Error('No existe una cuenta con ese correo');
 
   const resetCode = generateCode();
-  users[index].verificationCode = resetCode;
-  saveUsers(users);
+  const updatedUser = await prisma.user.update({
+    where: { email },
+    data: { verificationCode: resetCode }
+  });
 
-  return { code: resetCode, user: users[index] };
+  return { code: resetCode, user: updatedUser };
 };
 
-/**
- * Valida código de recuperación y actualiza contraseña
- */
-export const resetPassword = (email, code, newPassword) => {
-  const users = getAllUsers();
-  const index = users.findIndex((u) => u.email === email);
+export const resetPassword = async (email, code, newPassword) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new Error('Usuario no encontrado');
+  if (user.verificationCode !== code) throw new Error('Código de recuperación incorrecto');
 
-  if (index === -1) throw new Error('Usuario no encontrado');
-  if (users[index].verificationCode !== code) throw new Error('Código de recuperación incorrecto');
+  const updatedUser = await prisma.user.update({
+    where: { email },
+    data: { 
+      password: hashPassword(newPassword),
+      verificationCode: null 
+    }
+  });
 
-  users[index].password = hashPassword(newPassword);
-  users[index].verificationCode = '';
-  saveUsers(users);
-
-  return users[index];
+  return updatedUser;
 };
 
-/**
- * Autentica un usuario (por email o código universitario)
- */
-export const authenticateUser = (identifier, password) => {
-  const user = findUser(identifier);
+export const authenticateUser = async (identifier, password) => {
+  const user = await findUser(identifier);
 
   if (!user) throw new Error('Usuario no encontrado. Verifica tus credenciales');
   if (!user.verified) throw new Error('Debes verificar tu correo institucional antes de iniciar sesión');
   if (user.password !== hashPassword(password)) throw new Error('Contraseña incorrecta');
 
-  // Retornar usuario sin contraseña ni código
   const { password: _, verificationCode: __, ...safeUser } = user;
   return safeUser;
 };
+
+// Exportar instancia de prisma para otros servicios
+export { prisma };

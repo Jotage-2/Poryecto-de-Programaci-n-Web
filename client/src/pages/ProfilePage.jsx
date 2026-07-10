@@ -5,23 +5,9 @@ import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/common/Navbar';
 import { getInitials } from '../utils/validators';
 
-// ============================================================
-// DATOS ESTÁTICOS (amigos y grupos — sin estado)
-// ============================================================
-const amigosEjemplo = [
-  { id: 1, nombre: 'María García', carrera: 'Psicología', ciclo: '4' },
-  { id: 2, nombre: 'Carlos López', carrera: 'Ingeniería Industrial', ciclo: '5' },
-  { id: 3, nombre: 'Ana Torres', carrera: 'Derecho', ciclo: '3' },
-  { id: 4, nombre: 'Luis Mendoza', carrera: 'Administración', ciclo: '6' },
-  { id: 5, nombre: 'Valeria Ramos', carrera: 'Ingeniería de Sistemas', ciclo: '4' },
-  { id: 6, nombre: 'Diego Flores', carrera: 'Economía', ciclo: '7' },
-];
-
-const gruposEjemplo = [
-  { id: 1, nombre: 'Programación Web', emoji: '💻', miembros: 24, carrera: 'Ingeniería de Sistemas' },
-  { id: 2, nombre: 'Cálculo II', emoji: '📐', miembros: 18, carrera: 'Ingeniería Industrial' },
-  { id: 3, nombre: 'Base de Datos', emoji: '🗄️', miembros: 30, carrera: 'Ingeniería de Sistemas' },
-];
+import { useGroups } from '../hooks/useGroups';
+import { useFriends } from '../context/FriendsContext';
+import { usePosts } from '../hooks/usePosts';
 
 // ============================================================
 // MODAL: CREAR PUBLICACIÓN
@@ -248,25 +234,25 @@ const MisPublicaciones = ({ publicaciones, user, onAbrirModal, onEliminar, onLik
             </button>
           </div>
           <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-4 whitespace-pre-wrap">
-            {post.contenido}
+            {post.content}
           </p>
           <div className="flex items-center gap-4 pt-3 border-t border-gray-100 dark:border-dark-400">
             <button
               onClick={() => onLike(post.id)}
               className={`flex items-center gap-1.5 text-xs font-semibold transition-all duration-150 active:scale-110 ${
-                post.likedByMe
+                post.likes?.some(l => l.userId === user?.id)
                   ? 'text-red-500 dark:text-red-400'
                   : 'text-gray-400 hover:text-red-400 dark:hover:text-red-400'
               }`}
             >
-              <span className={`transition-transform duration-150 ${post.likedByMe ? 'scale-125' : ''}`}>
-                {post.likedByMe ? '❤️' : '🤍'}
+              <span className={`transition-transform duration-150 ${post.likes?.some(l => l.userId === user?.id) ? 'scale-125' : ''}`}>
+                {post.likes?.some(l => l.userId === user?.id) ? '❤️' : '🤍'}
               </span>
-              <span>{post.likes}</span>
+              <span>{post.likesCount || 0}</span>
             </button>
             <button className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
               <span>💬</span>
-              <span>{post.comentarios}</span>
+              <span>0</span>
             </button>
             <button className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors ml-auto">
               <span>↗️</span>
@@ -324,39 +310,47 @@ const ProfilePage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [tabActiva, setTabActiva] = useState('publicaciones');
-  const [publicaciones, setPublicaciones] = useState([]);
   const [modalAbierto, setModalAbierto] = useState(false);
 
-  const handlePublicar = (contenido) => {
-    const nueva = {
-      id: Date.now(),
-      contenido,
-      fecha: 'Ahora mismo',
-      likes: 0,
-      comentarios: 0,
-      likedByMe: false,
-    };
-    setPublicaciones((prev) => [nueva, ...prev]);
-    setModalAbierto(false);
+  const { groups } = useGroups();
+  const misGrupos = groups
+    .filter(g => g.members && g.members.some(m => m.id === user?.id))
+    .map(g => ({
+      id: g.id,
+      nombre: g.name,
+      emoji: g.emoji || '📚',
+      miembros: g.membersCount,
+      carrera: g.career
+    }));
+
+  const { friends } = useFriends();
+  const misAmigos = friends.map(f => ({
+    id: f.id,
+    nombre: f.name + ' ' + f.lastName,
+    carrera: f.career,
+    ciclo: f.cycle
+  }));
+
+  const { posts, addPost, deletePost, handleToggleLike } = usePosts();
+  const misPosts = posts.filter(p => p.authorId === user?.id);
+
+  const handlePublicar = async (contenido) => {
+    if (await addPost(contenido, user?.id)) {
+      setModalAbierto(false);
+    }
   };
 
-  const handleEliminar = (id) => {
-    setPublicaciones((prev) => prev.filter((p) => p.id !== id));
+  const handleEliminar = async (id) => {
+    await deletePost(id);
   };
 
-  const handleLike = (id) => {
-    setPublicaciones((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? { ...p, likes: p.likedByMe ? p.likes - 1 : p.likes + 1, likedByMe: !p.likedByMe }
-          : p
-      )
-    );
+  const handleLike = async (id) => {
+    await handleToggleLike(id, user?.id);
   };
 
   const tabs = [
-    { id: 'publicaciones', label: 'Publicaciones', icon: '📝', count: publicaciones.length },
-    { id: 'amigos', label: 'Amigos', icon: '👥', count: amigosEjemplo.length },
+    { id: 'publicaciones', label: 'Publicaciones', icon: '📝', count: misPosts.length },
+    { id: 'amigos', label: 'Amigos', icon: '👥', count: misAmigos.length },
   ];
 
   return (
@@ -418,9 +412,9 @@ const ProfilePage = () => {
             {/* Estadísticas rápidas — el contador de publicaciones es reactivo */}
             <div className="mt-4 flex flex-wrap gap-3">
               {[
-                { label: 'Publicaciones', value: publicaciones.length, icon: '📝' },
-                { label: 'Amigos', value: amigosEjemplo.length, icon: '👥' },
-                { label: 'Grupos', value: gruposEjemplo.length, icon: '🏫' },
+                { label: 'Publicaciones', value: misPosts.length, icon: '📝' },
+                { label: 'Amigos', value: misAmigos.length, icon: '👥' },
+                { label: 'Grupos', value: misGrupos.length, icon: '🏫' },
               ].map(({ label, value, icon }) => (
                 <div key={label} className="text-center px-4 py-2 rounded-xl bg-gray-50 dark:bg-dark-300 min-w-[72px]">
                   <p className="text-lg font-black text-gray-800 dark:text-gray-100">{value}</p>
@@ -437,7 +431,7 @@ const ProfilePage = () => {
           {/* ── COLUMNA IZQUIERDA ── */}
           <div className="w-full lg:w-72 shrink-0 space-y-4">
             <InfoAcademica user={user} />
-            <MisGrupos grupos={gruposEjemplo} navigate={navigate} />
+            <MisGrupos grupos={misGrupos} navigate={navigate} />
           </div>
 
           {/* ── COLUMNA DERECHA ── */}
@@ -472,7 +466,7 @@ const ProfilePage = () => {
             {/* Contenido */}
             {tabActiva === 'publicaciones' && (
               <MisPublicaciones
-                publicaciones={publicaciones}
+                publicaciones={misPosts}
                 user={user}
                 onAbrirModal={() => setModalAbierto(true)}
                 onEliminar={handleEliminar}
@@ -480,7 +474,7 @@ const ProfilePage = () => {
               />
             )}
             {tabActiva === 'amigos' && (
-              <MisAmigos amigos={amigosEjemplo} />
+              <MisAmigos amigos={misAmigos} />
             )}
           </div>
         </div>

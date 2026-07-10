@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String       @id @default(uuid())
+  name             String
+  lastName         String
+  studentCode      String       @unique
+  email            String       @unique
+  password         String
+  career           String
+  cycle            String
+  profilePicture   String?
+  verificationCode String?
+  verified         Boolean      @default(false)
+  createdAt        DateTime     @default(now())
+
+  // Relaciones
+  posts            Post[]       @relation("UserPosts")
+  likes            Like[]
+  groups           Group[]      @relation("GroupMembers")
+  
+  // Relación de Amistad
+  sentRequests     Friendship[] @relation("Requester")
+  receivedRequests Friendship[] @relation("Addressee")
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  
+  // Relaciones
+  authorId  String
+  author    User     @relation("UserPosts", fields: [authorId], references: [id])
+  likes     Like[]
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  userId    String
+  
+  // Relaciones
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([postId, userId])
+}
+
+model Group {
+  id        Int      @id @default(autoincrement())
+  name      String
+  career    String
+  emoji     String
+  
+  // Relaciones
+  members   User[]   @relation("GroupMembers")
+}
+
+model Friendship {
+  id          Int      @id @default(autoincrement())
+  requesterId String
+  addresseeId String
+  status      String   @default("PENDING") // Puede ser PENDING o ACCEPTED
+
+  // Relaciones
+  requester   User     @relation("Requester", fields: [requesterId], references: [id])
+  addressee   User     @relation("Addressee", fields: [addresseeId], references: [id])
+
+  @@unique([requesterId, addresseeId])
+}

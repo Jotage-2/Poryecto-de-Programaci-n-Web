@@ -121,17 +121,19 @@ export const ListaPublicaciones = ({ publicaciones, user, onAbrirModal, onElimin
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold text-xs shrink-0 overflow-hidden">
-                {user?.profilePicture ? (
-                  <img src={user.profilePicture} alt="Perfil" className="w-full h-full object-cover" />
+                {post.author?.profilePicture ? (
+                  <img src={post.author.profilePicture} alt="Perfil" className="w-full h-full object-cover" />
                 ) : (
-                  getInitials(user?.name, user?.lastName)
+                  getInitials(post.author?.name || user?.name, post.author?.lastName || user?.lastName)
                 )}
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                  {user?.name} {user?.lastName}
+                  {post.author?.name || user?.name} {post.author?.lastName || user?.lastName}
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500">{post.fecha}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  {post.createdAt ? new Date(post.createdAt).toLocaleDateString() : post.fecha}
+                </p>
               </div>
             </div>
             <button
@@ -143,25 +145,25 @@ export const ListaPublicaciones = ({ publicaciones, user, onAbrirModal, onElimin
             </button>
           </div>
           <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-4 whitespace-pre-wrap">
-            {post.contenido}
+            {post.content || post.contenido}
           </p>
           <div className="flex items-center gap-4 pt-3 border-t border-gray-100 dark:border-dark-400">
             <button
               onClick={() => onLike(post.id)}
               className={`flex items-center gap-1.5 text-xs font-semibold transition-all duration-150 active:scale-110 ${
-                post.likedByMe
+                (post.likes && Array.isArray(post.likes) ? post.likes.some(l => l.userId === user?.id) : post.likedByMe)
                   ? 'text-red-500 dark:text-red-400'
                   : 'text-gray-400 hover:text-red-400 dark:hover:text-red-400'
               }`}
             >
-              <span className={`transition-transform duration-150 ${post.likedByMe ? 'scale-125' : ''}`}>
-                {post.likedByMe ? '❤️' : '🤍'}
+              <span className={`transition-transform duration-150 ${(post.likes && Array.isArray(post.likes) ? post.likes.some(l => l.userId === user?.id) : post.likedByMe) ? 'scale-125' : ''}`}>
+                {(post.likes && Array.isArray(post.likes) ? post.likes.some(l => l.userId === user?.id) : post.likedByMe) ? '❤️' : '🤍'}
               </span>
-              <span>{post.likes}</span>
+              <span>{post.likesCount !== undefined ? post.likesCount : post.likes}</span>
             </button>
             <button className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
               <span>💬</span>
-              <span>{post.comentarios}</span>
+              <span>{post.commentsCount || post.comentarios || 0}</span>
             </button>
             <button className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors ml-auto">
               <span>↗️</span>

@@ -7,6 +7,9 @@ import { dirname, join } from 'path';
 
 // Importar rutas
 import authRoutes from './routes/authRoutes.js';
+import postRoutes from './routes/postRoutes.js';
+import friendRoutes from './routes/friendRoutes.js';
+import groupRoutes from './routes/groupRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
 // Cargar variables de entorno
@@ -48,8 +51,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Rutas de autenticación
+// Rutas de la API
 app.use('/api/auth', authRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/friends', friendRoutes);
+app.use('/api/groups', groupRoutes);
 
 // ============================================================
 // MANEJO DE ERRORES
