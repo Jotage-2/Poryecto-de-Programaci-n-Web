@@ -15,6 +15,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import HomePage from './pages/HomePage';
 import GruposPage from './pages/GruposPage';
 import ProfilePage from './pages/ProfilePage';
+import PublicProfilePage from './pages/PublicProfilePage';
 import MensajesPage from './pages/MensajesPage';
 
 const App = () => {
@@ -36,6 +37,7 @@ const App = () => {
               {/* Rutas protegidas */}
               <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="/perfil/:userId" element={<ProtectedRoute><PublicProfilePage /></ProtectedRoute>} />
               <Route path="/grupos" element={<ProtectedRoute><GruposPage /></ProtectedRoute>} />
               <Route path="/amigos" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
               <Route path="/mensajes" element={<ProtectedRoute><MensajesPage /></ProtectedRoute>} />

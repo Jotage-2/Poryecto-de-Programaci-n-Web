@@ -1,11 +1,26 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-export const usePosts = (userId) => {
-  const storageKey = `ulimasocial_posts_${userId || 'anonymous'}`;
+const normalizePost = (post) => ({
+  ...post,
+  likedBy: Array.isArray(post.likedBy)
+    ? post.likedBy.map(String)
+    : post.likedByMe
+      ? ['legacy-viewer']
+      : [],
+  comments: Array.isArray(post.comments) ? post.comments : [],
+});
+
+export const usePosts = (ownerId, viewerId = ownerId) => {
+  const storageKey = `ulimasocial_posts_${ownerId || 'anonymous'}`;
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    try { setPosts(JSON.parse(localStorage.getItem(storageKey)) || []); } catch { setPosts([]); }
+    try {
+      const storedPosts = JSON.parse(localStorage.getItem(storageKey)) || [];
+      setPosts(storedPosts.map(normalizePost));
+    } catch {
+      setPosts([]);
+    }
   }, [storageKey]);
 
   const save = useCallback((next) => {
@@ -16,15 +31,62 @@ export const usePosts = (userId) => {
     });
   }, [storageKey]);
 
-  const createPost = (content) => save((current) => [{
-    id: crypto.randomUUID(), contenido: content,
-    fecha: new Date().toLocaleString('es-PE', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-    likes: 0, likedByMe: false, comentarios: 0,
-  }, ...current]);
-  const deletePost = (id) => save((current) => current.filter((post) => post.id !== id));
-  const toggleLike = (id) => save((current) => current.map((post) => post.id === id ? {
-    ...post, likes: post.likedByMe ? Math.max(0, post.likes - 1) : post.likes + 1, likedByMe: !post.likedByMe,
-  } : post));
+  const createPost = useCallback((content) => save((current) => [{
+    id: crypto.randomUUID(),
+    authorId: ownerId,
+    contenido: content,
+    createdAt: new Date().toISOString(),
+    fecha: new Date().toLocaleString('es-PE', {
+      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+    }),
+    likedBy: [],
+    comments: [],
+  }, ...current]), [ownerId, save]);
 
-  return { posts, createPost, deletePost, toggleLike };
+  const deletePost = useCallback((id) => save((current) => current.filter((post) => post.id !== id)), [save]);
+
+  const toggleLike = useCallback((id) => {
+    if (!viewerId) return;
+    const normalizedViewerId = String(viewerId);
+    save((current) => current.map((post) => {
+      if (post.id !== id) return post;
+      const likedBy = Array.isArray(post.likedBy) ? post.likedBy.map(String) : [];
+      const alreadyLiked = likedBy.includes(normalizedViewerId);
+      return {
+        ...post,
+        likedBy: alreadyLiked
+          ? likedBy.filter((item) => item !== normalizedViewerId)
+          : [...likedBy, normalizedViewerId],
+      };
+    }));
+  }, [save, viewerId]);
+
+  const addComment = useCallback((postId, content, author) => {
+    if (!content.trim() || !author?.id) return;
+    const comment = {
+      id: crypto.randomUUID(),
+      content: content.trim(),
+      createdAt: new Date().toISOString(),
+      fecha: new Date().toLocaleString('es-PE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+      author: {
+        id: author.id,
+        name: author.name,
+        lastName: author.lastName,
+        career: author.career,
+        profilePicture: author.profilePicture || '',
+      },
+    };
+    save((current) => current.map((post) => post.id === postId
+      ? { ...post, comments: [...(post.comments || []), comment] }
+      : post));
+  }, [save]);
+
+  const postsForViewer = useMemo(() => posts.map((post) => ({
+    ...post,
+    likes: post.likedBy?.length || 0,
+    likedByMe: post.likedBy?.map(String).includes(String(viewerId)),
+    comentarios: post.comments?.length || 0,
+  })), [posts, viewerId]);
+
+  return { posts: postsForViewer, createPost, deletePost, toggleLike, addComment };
 };

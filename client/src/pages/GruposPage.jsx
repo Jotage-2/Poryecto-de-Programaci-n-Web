@@ -41,8 +41,8 @@ const GruposPage = () => {
 
   return <div className="min-h-screen bg-gray-100 dark:bg-dark-100"><Navbar />
     {isModalOpen && <CreateGroupModal onClose={() => setIsModalOpen(false)} onCreate={createGroup} />}
-    <main className="max-w-5xl mx-auto px-4 pt-20 pb-8">
-      <div className="flex items-center justify-between mb-6"><div><h1 className="text-2xl font-bold text-gray-800 dark:text-white">Grupos</h1><p className="text-sm text-gray-500">Únete a grupos de estudio de tu carrera</p></div><button onClick={() => setIsModalOpen(true)} className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-xl text-sm font-semibold">+ Crear grupo</button></div>
+    <main className="max-w-5xl mx-auto px-4 pt-20 pb-24 md:pb-8 page-enter">
+      <div className="flex items-center justify-between mb-6"><div><h1 className="text-2xl font-bold text-gray-800 dark:text-white">Grupos</h1><p className="text-sm text-gray-500">Únete a grupos de estudio de tu carrera</p></div><button onClick={() => setIsModalOpen(true)} className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:-translate-y-0.5 shadow-md shadow-primary-600/20">+ Crear grupo</button></div>
       <div className="flex gap-3 mb-6"><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar grupos..." className="input-base flex-1" />
         {[['all','Todos'],['mine','Mis grupos']].map(([id,label]) => <button key={id} onClick={() => setFilter(id)} className={`px-4 py-2 rounded-xl text-sm font-medium ${filter === id ? 'bg-primary-500 text-white' : 'bg-white dark:bg-dark-200 text-gray-600 dark:text-gray-300'}`}>{label}</button>)}
       </div>
