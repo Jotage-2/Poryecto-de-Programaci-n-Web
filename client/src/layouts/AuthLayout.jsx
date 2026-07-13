@@ -65,7 +65,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
 
         {/* Footer */}
         <p className="text-center mt-6 text-xs text-gray-400 dark:text-gray-500">
-          © 2024 ULimaSocial · Solo para estudiantes de la Universidad de Lima
+          © 2026 ULimaSocial · Solo para estudiantes de la Universidad de Lima
         </p>
       </div>
     </div>

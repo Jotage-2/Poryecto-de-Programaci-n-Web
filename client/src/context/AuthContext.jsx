@@ -43,8 +43,6 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     // Persistir en localStorage para que sobreviva recargas de página
     localStorage.setItem(SESSION_KEY, JSON.stringify(userData));
-    // También guardar en sessionStorage como capa adicional
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(userData));
   }, []);
 
   /**
@@ -53,7 +51,6 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(SESSION_KEY);
   }, []);
 
   /**

@@ -6,19 +6,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useFriends } from '../../context/FriendsContext';
 import { getInitials } from '../../utils/validators';
 
-// ============================================================
-// Busca usuarios en el JSON del backend vía API
-// ============================================================
-const searchUsers = async (query) => {
-  try {
-    const res = await fetch(`/api/auth/search?q=${encodeURIComponent(query)}`);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.users || [];
-  } catch {
-    return [];
-  }
-};
+import { searchUsers } from '../../services/api';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -92,7 +80,7 @@ const Navbar = () => {
         </div>
 
         {/* Barra de búsqueda con dropdown */}
-        <div ref={searchRef} className="relative hidden md:block w-64">
+        <div ref={searchRef} className="relative flex-1 max-w-64 mx-3">
           <div className="flex items-center gap-2 bg-gray-100 dark:bg-dark-300 rounded-xl px-3 py-2">
             <span className="text-gray-400 text-sm shrink-0">
               {searching ? '⏳' : '🔍'}

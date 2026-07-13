@@ -3,47 +3,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import { useFriends } from '../context/FriendsContext';
-import { getInitials } from '../utils/validators';
-
-// ============================================================
-// COMPONENTE: TARJETA DE USUARIO
-// ============================================================
-const UserCard = ({ person, actions }) => (
-  <div className="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-dark-300 transition-colors">
-    <div className="flex items-center gap-3">
-      {/* Avatar */}
-      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden shadow-sm">
-        {person.profilePicture ? (
-          <img src={person.profilePicture} alt={person.name} className="w-full h-full object-cover" />
-        ) : (
-          getInitials(person.name, person.lastName)
-        )}
-      </div>
-      {/* Info */}
-      <div>
-        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-          {person.name} {person.lastName}
-        </p>
-        <p className="text-xs text-gray-400">{person.career}</p>
-      </div>
-    </div>
-    {/* Botones de acción */}
-    <div className="flex items-center gap-2 shrink-0">
-      {actions}
-    </div>
-  </div>
-);
-
-// ============================================================
-// COMPONENTE: ESTADO VACÍO
-// ============================================================
-const EmptyState = ({ icon, title, description }) => (
-  <div className="text-center py-12">
-    <div className="text-5xl mb-3">{icon}</div>
-    <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-1">{title}</h3>
-    <p className="text-sm text-gray-400 dark:text-gray-500 max-w-xs mx-auto">{description}</p>
-  </div>
-);
+import UserCard from '../components/user/UserCard';
+import EmptyState from '../components/feedback/EmptyState';
 
 // ============================================================
 // COMPONENTE PRINCIPAL
